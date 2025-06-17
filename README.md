@@ -22,13 +22,15 @@ function App() {
     console.log('Success:', message);
   };
 
-  // In a real application, this token would typically come from your authentication system
+  // All three props below are required
+  const apiUrl = 'https://your-api-url.com';
+  const userId = 'your-user-id';
   const bearerToken = 'your-jwt-token-here';
 
   return (
     <UserService
-      apiUrl="https://your-api-url.com"
-      userId="user123"
+      apiUrl={apiUrl}
+      userId={userId}
       bearerToken={bearerToken}
       onError={handleError}
       onSuccess={handleSuccess}
@@ -39,13 +41,15 @@ function App() {
 
 ## Props
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| apiUrl | string | Yes | The base URL of your user service API |
-| userId | string | Yes | The ID of the user to display/edit |
-| bearerToken | string | Yes | JWT token for API authentication |
-| onError | (error: Error) => void | No | Callback function for error handling |
-| onSuccess | (message: string) => void | No | Callback function for success messages |
+| Prop         | Type                        | Required | Description                                 |
+|--------------|-----------------------------|----------|---------------------------------------------|
+| apiUrl       | string                      | Yes      | The base URL of your user service API       |
+| userId       | string                      | Yes      | The ID of the user to display/edit          |
+| bearerToken  | string                      | Yes      | JWT token for API authentication            |
+| onError      | (error: Error) => void      | No       | Callback function for error handling        |
+| onSuccess    | (message: string) => void   | No       | Callback function for success messages      |
+
+**Note:** `apiUrl`, `userId`, and `bearerToken` are all required for the component to function correctly.
 
 ## Features
 

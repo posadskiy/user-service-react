@@ -12,6 +12,7 @@ export interface UserFormData extends Omit<User, 'id'> {}
 export interface UserServiceProps {
   apiUrl: string;
   userId: string;
+  bearerToken: string;
   onError?: (error: Error) => void;
   onSuccess?: (message: string) => void;
 } 
