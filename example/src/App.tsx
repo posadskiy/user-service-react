@@ -11,13 +11,15 @@ function App() {
   };
 
   // In a real application, this token would typically come from your authentication system
-  const bearerToken = 'eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhdXRoLXNlcnZpY2UiLCJzdWIiOiIyIiwibmJmIjoxNzUwMTg3NDE5LCJleHAiOjE3NTA1NDc0MTksImlhdCI6MTc1MDE4NzQxOSwicm9sZXMiOltdfQ.R3kSIhlrLMpIvHqFoqHPvSHah2GDXsQQv9Z-o2W21pM';
+  const bearerToken = 'your-bearer-token-here';
+  const apiUrl = 'your-api-url-here';
+  const userId = 'your-user-id-here';
 
   return (
     <div className="App">
       <UserService
-        apiUrl="http://user-service.local"
-        userId="2"
+        apiUrl={apiUrl}
+        userId={userId}
         bearerToken={bearerToken}
         onError={handleError}
         onSuccess={handleSuccess}
