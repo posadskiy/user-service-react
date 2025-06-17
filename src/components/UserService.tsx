@@ -17,6 +17,7 @@ import { User, UserFormData, UserServiceProps } from '../types';
 export const UserService: React.FC<UserServiceProps> = ({
   apiUrl,
   userId,
+  bearerToken,
   onError,
   onSuccess,
 }) => {
@@ -32,11 +33,15 @@ export const UserService: React.FC<UserServiceProps> = ({
 
   React.useEffect(() => {
     fetchUserData();
-  }, [apiUrl, userId]);
+  }, [apiUrl, userId, bearerToken]);
 
   const fetchUserData = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/v0/user/${userId}`);
+      const response = await axios.get(`${apiUrl}/v0/user/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`
+        }
+      });
       setUser(response.data);
       setFormData({
         email: response.data.email,
@@ -62,7 +67,11 @@ export const UserService: React.FC<UserServiceProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.put(`${apiUrl}/v0/user/${userId}`, formData);
+      const response = await axios.put(`${apiUrl}/v0/user/${userId}`, formData, {
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`
+        }
+      });
       setUser(response.data);
       setEditing(false);
       onSuccess?.('User information updated successfully');
