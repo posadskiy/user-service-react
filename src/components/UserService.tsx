@@ -9,10 +9,17 @@ import {
   Grid,
   CircularProgress,
   Avatar,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Alert,
 } from '@mui/material';
-import { Edit as EditIcon, Save as SaveIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Save as SaveIcon, VerifiedUser as VerifiedUserIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import axios from 'axios';
-import { User, UserFormData, UserServiceProps } from '../types';
+import { User, UserServiceProps } from '../types';
 
 export const UserService: React.FC<UserServiceProps> = ({
   apiUrl,
@@ -23,12 +30,12 @@ export const UserService: React.FC<UserServiceProps> = ({
   const [user, setUser] = React.useState<User | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [editing, setEditing] = React.useState(false);
-  const [formData, setFormData] = React.useState<UserFormData>({
-    email: '',
-    firstName: '',
-    lastName: '',
-    phoneNumber: '',
-  });
+  const [imageError, setImageError] = React.useState(false);
+  const [username, setUsername] = React.useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [deleteEmail, setDeleteEmail] = React.useState('');
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
+  const [deleting, setDeleting] = React.useState(false);
 
   React.useEffect(() => {
     fetchUserData();
@@ -38,12 +45,8 @@ export const UserService: React.FC<UserServiceProps> = ({
     try {
       const response = await axios.get(`${apiUrl}/v0/user/${userId}`);
       setUser(response.data);
-      setFormData({
-        email: response.data.email,
-        firstName: response.data.firstName,
-        lastName: response.data.lastName,
-        phoneNumber: response.data.phoneNumber || '',
-      });
+      setUsername(response.data.username || '');
+      setImageError(false);
     } catch (error) {
       onError?.(error as Error);
     } finally {
@@ -52,22 +55,70 @@ export const UserService: React.FC<UserServiceProps> = ({
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setUsername(e.target.value);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.put(`${apiUrl}/v0/user/${userId}`, formData);
+      const response = await axios.put(
+        `${apiUrl}/v0/user/${userId}`,
+        { username },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
       setUser(response.data);
+      setImageError(false);
       setEditing(false);
-      onSuccess?.('User information updated successfully');
+      onSuccess?.('Username updated successfully');
     } catch (error) {
       onError?.(error as Error);
+    }
+  };
+
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
+    setDeleteEmail('');
+    setDeleteError(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setDeleteEmail('');
+    setDeleteError(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!user) return;
+
+    // Validate email matches
+    if (deleteEmail.trim() !== user.email.trim()) {
+      setDeleteError('Email does not match. Please enter your email address to confirm deletion.');
+      return;
+    }
+
+    setDeleting(true);
+    setDeleteError(null);
+
+    try {
+      await axios.delete(`${apiUrl}/v0/user/${userId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      setDeleteDialogOpen(false);
+      onSuccess?.('Your account has been deleted successfully');
+      // Optionally redirect or clear user data
+      setUser(null);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete account';
+      setDeleteError(errorMessage);
+      onError?.(error as Error);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -84,12 +135,25 @@ export const UserService: React.FC<UserServiceProps> = ({
       <CardContent>
         <Box display="flex" alignItems="center" mb={3}>
           <Avatar
-            src={user?.avatar}
+            src={user?.pictureUrl && user.pictureUrl.trim() && !imageError ? user.pictureUrl : undefined}
+            onError={() => setImageError(true)}
             sx={{ width: 64, height: 64, mr: 2 }}
-          />
-          <Typography variant="h5" component="h2">
-            {user?.firstName} {user?.lastName}
-          </Typography>
+          >
+            {user?.username?.charAt(0).toUpperCase()}
+          </Avatar>
+          <Box>
+            <Typography variant="h5" component="h2">
+              {user?.username}
+            </Typography>
+            {user?.emailVerified && (
+              <Box display="flex" alignItems="center" mt={0.5}>
+                <VerifiedUserIcon sx={{ fontSize: 16, mr: 0.5, color: 'success.main' }} />
+                <Typography variant="caption" color="success.main">
+                  Email Verified
+                </Typography>
+              </Box>
+            )}
+          </Box>
         </Box>
 
         {editing ? (
@@ -98,47 +162,21 @@ export const UserService: React.FC<UserServiceProps> = ({
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Email"
-                  name="email"
-                  value={formData.email}
+                  label="Username"
+                  name="username"
+                  value={username}
                   onChange={handleInputChange}
                   required
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="First Name"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Last Name"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Phone Number"
-                  name="phoneNumber"
-                  value={formData.phoneNumber}
-                  onChange={handleInputChange}
                 />
               </Grid>
               <Grid item xs={12}>
                 <Box display="flex" justifyContent="flex-end" gap={1}>
                   <Button
                     variant="outlined"
-                    onClick={() => setEditing(false)}
+                    onClick={() => {
+                      setEditing(false);
+                      setUsername(user?.username || '');
+                    }}
                   >
                     Cancel
                   </Button>
@@ -158,42 +196,121 @@ export const UserService: React.FC<UserServiceProps> = ({
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <Typography variant="subtitle1" color="textSecondary">
+                  Username
+                </Typography>
+                <Typography variant="body1">{user?.username}</Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" color="textSecondary">
                   Email
                 </Typography>
-                <Typography variant="body1">{user?.email}</Typography>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Typography variant="body1">{user?.email}</Typography>
+                  {user?.emailVerified && (
+                    <VerifiedUserIcon sx={{ fontSize: 18, color: 'success.main' }} />
+                  )}
+                </Box>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12}>
                 <Typography variant="subtitle1" color="textSecondary">
-                  First Name
+                  Created Via
                 </Typography>
-                <Typography variant="body1">{user?.firstName}</Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" color="textSecondary">
-                  Last Name
+                <Typography variant="body1" textTransform="capitalize">
+                  {user?.createdVia}
                 </Typography>
-                <Typography variant="body1">{user?.lastName}</Typography>
               </Grid>
-              {user?.phoneNumber && (
+              {user?.authProviders && user.authProviders.length > 0 && (
                 <Grid item xs={12}>
-                  <Typography variant="subtitle1" color="textSecondary">
-                    Phone Number
+                  <Typography variant="subtitle1" color="textSecondary" mb={1}>
+                    Auth Providers
                   </Typography>
-                  <Typography variant="body1">{user.phoneNumber}</Typography>
+                  <Box display="flex" gap={1} flexWrap="wrap">
+                    {user.authProviders.map((provider) => (
+                      <Chip
+                        key={provider}
+                        label={provider}
+                        size="small"
+                        variant="outlined"
+                      />
+                    ))}
+                  </Box>
                 </Grid>
               )}
             </Grid>
-            <Box display="flex" justifyContent="flex-end" mt={2}>
+            <Box display="flex" justifyContent="space-between" mt={2}>
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<DeleteIcon />}
+                onClick={handleDeleteClick}
+              >
+                Delete Profile
+              </Button>
               <Button
                 variant="contained"
                 startIcon={<EditIcon />}
-                onClick={() => setEditing(true)}
+                onClick={() => {
+                  setEditing(true);
+                  setUsername(user?.username || '');
+                }}
               >
-                Edit Profile
+                Edit Username
               </Button>
             </Box>
           </>
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={handleDeleteCancel}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Delete Profile</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              This action cannot be undone. This will permanently delete your account and all associated data.
+              <br />
+              <br />
+              To confirm, please enter your email address: <strong>{user?.email}</strong>
+            </DialogContentText>
+            {deleteError && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {deleteError}
+              </Alert>
+            )}
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Email Address"
+              type="email"
+              fullWidth
+              variant="outlined"
+              value={deleteEmail}
+              onChange={(e) => {
+                setDeleteEmail(e.target.value);
+                setDeleteError(null);
+              }}
+              disabled={deleting}
+              sx={{ mt: 2 }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDeleteCancel} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteConfirm}
+              color="error"
+              variant="contained"
+              disabled={deleting || !deleteEmail.trim()}
+              startIcon={deleting ? <CircularProgress size={16} /> : <DeleteIcon />}
+            >
+              {deleting ? 'Deleting...' : 'Delete Profile'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </CardContent>
     </Card>
   );

@@ -1,17 +1,17 @@
-# User Service React Component
+# User Component React
 
 A React component for managing user information, built with Material-UI and TypeScript.
 
 ## Installation
 
 ```bash
-npm install user-service-react
+npm install user-component-react
 ```
 
 ## Usage
 
 ```tsx
-import { UserService } from 'user-service-react';
+import { UserService } from 'user-component-react';
 
 function App() {
   const handleError = (error: Error) => {
@@ -94,7 +94,7 @@ docker-compose -f docker-compose.dev.yml up user-service auth-service
 # 2. Get a JWT token from auth-service (use Swagger UI at http://localhost:8100/swagger-ui/index.html)
 
 # 3. Start the example app
-cd user-service-react/example
+cd user-component-react/example
 npm install
 npm start
 ```

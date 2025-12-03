@@ -1,13 +1,14 @@
 export interface User {
-  id: string;
+  id: number;
+  username: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber?: string;
-  avatar?: string;
+  emailVerified: boolean;
+  pictureUrl?: string;
+  createdVia: string;
+  authProviders: string[];
 }
 
-export interface UserFormData extends Omit<User, 'id'> {}
+export interface UserFormData extends Omit<User, 'id' | 'emailVerified' | 'createdVia' | 'authProviders'> {}
 
 export interface UserServiceProps {
   apiUrl: string;
