@@ -10,14 +10,19 @@ function App() {
     console.log('Success:', message);
   };
 
-  // In a real application, this token would typically come from your authentication system
-  const bearerToken = 'eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhdXRoLXNlcnZpY2UiLCJzdWIiOiIyIiwibmJmIjoxNzUwMTg3NDE5LCJleHAiOjE3NTA1NDc0MTksImlhdCI6MTc1MDE4NzQxOSwicm9sZXMiOltdfQ.R3kSIhlrLMpIvHqFoqHPvSHah2GDXsQQv9Z-o2W21pM';
+  // For local testing, update these values:
+  // 1. Get a JWT token from auth-service (see TESTING.md)
+  // 2. Update userId to match the user ID in the token
+  // 3. Ensure user-service is running on localhost:8095
+  const bearerToken = process.env.REACT_APP_BEARER_TOKEN || 'YOUR_JWT_TOKEN_HERE';
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8095';
+  const userId = process.env.REACT_APP_USER_ID || '2';
 
   return (
     <div className="App">
       <UserService
-        apiUrl="http://user-service.local"
-        userId="2"
+        apiUrl={apiUrl}
+        userId={userId}
         bearerToken={bearerToken}
         onError={handleError}
         onSuccess={handleSuccess}

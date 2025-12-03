@@ -77,6 +77,30 @@ npm install
 npm run build
 ```
 
+## Local Testing
+
+To test this component locally with the backend:
+
+1. **Quick Start**: See [QUICK_START.md](./QUICK_START.md) for the fastest way to get started
+2. **Detailed Guide**: See [TESTING.md](./TESTING.md) for comprehensive testing instructions
+
+### Quick Test
+
+```bash
+# 1. Start backend services
+cd ../..  # Go to project root
+docker-compose -f docker-compose.dev.yml up user-service auth-service
+
+# 2. Get a JWT token from auth-service (use Swagger UI at http://localhost:8100/swagger-ui/index.html)
+
+# 3. Start the example app
+cd user-service-react/example
+npm install
+npm start
+```
+
+The example app will open at http://localhost:3000
+
 ## License
 
 MIT 
